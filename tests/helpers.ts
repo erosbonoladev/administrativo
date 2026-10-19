@@ -55,7 +55,7 @@ export async function createFixtureUser(opts: {
   const token = `test-token-${opts.username}-${Math.random().toString(36).slice(2)}`;
   const expiresExpr = opts.expired ? "datetime('now', '-1 hour')" : "datetime('now', '+12 hours')";
   const result = await client.execute({
-    sql: `INSERT INTO users (username, password_hash, activo, rol, session_token, session_expires_at)
+    sql: `INSERT INTO users (username, password_hash, activo, rol, admin_session_token, admin_session_expires_at)
           VALUES (?1, 'x', ?2, ?3, ?4, ${expiresExpr})`,
     args: [opts.username, opts.activo === false ? 0 : 1, opts.rol ?? "usuario", token],
   });

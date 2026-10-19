@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     if (user && token) {
       // Registrar el evento antes de limpiar la sesión: clearSession() pone
-      // session_token/session_expires_at en NULL, y si corriera primero
+      // admin_session_token/admin_session_expires_at en NULL, y si corriera primero
       // logEventAsActor() ya no encontraría una sesión vigente que verificar.
       // clearSession recibe el token para cerrar justo ESTA sesión, no
       // cualquiera que el usuario tenga activa en ese momento (ver db.ts).

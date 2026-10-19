@@ -49,13 +49,33 @@ describe("clearSession — cierra por id+token, nunca pisa una sesión más nuev
     await expect(validateSession(user.id, user.token)).resolves.toBeNull();
   });
 
-  it("un logout con un token viejo no invalida una sesión más nueva del mismo usuario (p. ej. logueado después en Clio u otro equipo)", async () => {
+  it("una sesión de Clio (session_token) no es válida acá, y el logout acá no la cierra", async () => {
+    const user = await createFixtureUser({ username: "dos_apps" });
+    await rawClient().execute({
+      sql: "UPDATE users SET session_token = 'token-clio', session_expires_at = datetime('now', '+12 hours') WHERE id = ?1",
+      args: [user.id],
+    });
+
+    await expect(validateSession(user.id, "token-clio")).resolves.toBeNull();
+    await expect(validateSession(user.id, user.token)).resolves.not.toBeNull();
+
+    await clearSession(user.id, user.token);
+
+    const row = (await rawClient().execute({
+      sql: "SELECT session_token, admin_session_token FROM users WHERE id = ?1",
+      args: [user.id],
+    })).rows[0];
+    expect(row.session_token).toBe("token-clio");
+    expect(row.admin_session_token).toBeNull();
+  });
+
+  it("un logout con un token viejo no invalida una sesión más nueva del mismo usuario (p. ej. logueado después en otro equipo)", async () => {
     const user = await createFixtureUser({ username: "dos_sesiones" });
     const tokenViejo = user.token;
 
     const tokenNuevo = "token-sesion-nueva";
     await rawClient().execute({
-      sql: "UPDATE users SET session_token = ?1, session_expires_at = datetime('now', '+12 hours') WHERE id = ?2",
+      sql: "UPDATE users SET admin_session_token = ?1, admin_session_expires_at = datetime('now', '+12 hours') WHERE id = ?2",
       args: [tokenNuevo, user.id],
     });
 

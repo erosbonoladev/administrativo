@@ -48,4 +48,4 @@ La **primera** build con updater hay que instalarla a mano en cada equipo; las s
 
 ## Restauración de la BD
 
-Es la misma BD que Clio, así que restaurar desde Clio (Configuraciones → Backups) ya restaura lo que ve esta app. La restauración reemplaza `users` (incluido `session_token`) y `user_sessions` con lo del backup: esta app detecta la sesión inválida en su siguiente revalidación/escritura (≤ 5 min) y vuelve al login. No hace falta ningún flujo de restauración propio.
+Es la misma BD que Clio, así que restaurar desde Clio (Configuraciones → Backups) ya restaura lo que ve esta app. La restauración reemplaza `users` (incluido `admin_session_token`) y `user_sessions` con lo del backup: esta app detecta la sesión inválida en su siguiente revalidación/escritura (≤ 5 min) y vuelve al login. No hace falta ningún flujo de restauración propio.

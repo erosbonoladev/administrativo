@@ -233,8 +233,8 @@ export async function verifyLogin(
   const token = generateSessionToken();
   await client.execute({
     sql: `UPDATE users
-          SET failed_attempts = 0, locked_until = NULL, session_token = ?1,
-              session_expires_at = datetime('now', ?2)
+          SET failed_attempts = 0, locked_until = NULL, admin_session_token = ?1,
+              admin_session_expires_at = datetime('now', ?2)
           WHERE id = ?3`,
     args: [token, `+${SESSION_TTL_HOURS} hours`, row.id],
   });
@@ -244,14 +244,14 @@ export async function verifyLogin(
 export async function validateSession(id: number, token: string): Promise<User | null> {
   const result = await client.execute({
     sql: `SELECT * FROM users
-          WHERE id = ?1 AND session_token = ?2
-            AND session_expires_at IS NOT NULL AND session_expires_at > datetime('now')`,
+          WHERE id = ?1 AND admin_session_token = ?2
+            AND admin_session_expires_at IS NOT NULL AND admin_session_expires_at > datetime('now')`,
     args: [id, token],
   });
   const row = result.rows[0] as unknown as UserRow | undefined;
   if (!row || !row.activo) return null;
   await client.execute({
-    sql: "UPDATE users SET session_expires_at = datetime('now', ?1) WHERE id = ?2",
+    sql: "UPDATE users SET admin_session_expires_at = datetime('now', ?1) WHERE id = ?2",
     args: [`+${SESSION_TTL_HOURS} hours`, id],
   });
   return rowToUser(row);
@@ -284,8 +284,8 @@ async function loadActorSession(
     : "0";
   const result = await client.execute({
     sql: `SELECT username, rol, activo, ${permisoExpr} AS tiene_permiso FROM users
-          WHERE id = ?1 AND session_token = ?2
-            AND session_expires_at IS NOT NULL AND session_expires_at > datetime('now')`,
+          WHERE id = ?1 AND admin_session_token = ?2
+            AND admin_session_expires_at IS NOT NULL AND admin_session_expires_at > datetime('now')`,
     args: [actor.id, actor.token, ...permisos],
   });
   return result.rows[0] as unknown as
@@ -330,10 +330,10 @@ export async function heartbeat(userId: number): Promise<void> {
 
 // token identifica LA sesión que se está cerrando, no solo el usuario: sin
 // esto, un logout con un token ya viejo (p.ej. una pestaña que quedó atrás)
-// podía pisar session_token de una sesión más nueva del mismo usuario abierta
+// podía pisar admin_session_token de una sesión más nueva del mismo usuario abierta
 // después en otro dispositivo, cerrándola sin que esa persona hiciera nada.
 // Mismo criterio que ya usan validateSession()/loadActorSession() (id AND
-// session_token). La fila de presencia en user_sessions sigue limpiándose
+// admin_session_token). La fila de presencia en user_sessions sigue limpiándose
 // solo por user_id — no es sensible, es la tabla de "¿tiene la app abierta?".
 export async function clearSession(userId: number, token: string): Promise<void> {
   await client.execute({
@@ -341,7 +341,7 @@ export async function clearSession(userId: number, token: string): Promise<void>
     args: [userId],
   });
   await client.execute({
-    sql: "UPDATE users SET session_token = NULL, session_expires_at = NULL WHERE id = ?1 AND session_token = ?2",
+    sql: "UPDATE users SET admin_session_token = NULL, admin_session_expires_at = NULL WHERE id = ?1 AND admin_session_token = ?2",
     args: [userId, token],
   });
 }
