@@ -1,6 +1,6 @@
 # Distribución y auto-update
 
-Funciona como en Clio (ver `docs/DISTRIBUTION.md` de ese repo): GitHub Releases privados, un build firmado con minisign por `tauri-action`, y el **Update API** (Cloudflare Worker, `update-api/` en el repo de Clio) como intermediario para que ningún PAT de GitHub viaje en el binario. Una sola diferencia: **Administrativo no tiene activación de instalación**.
+Funciona como en Clio (ver `docs/DISTRIBUTION.md` de ese repo): GitHub Releases privados (en un repo aparte, ver abajo), un build firmado con minisign por `tauri-action`, y el **Update API** (Cloudflare Worker, `update-api/` en el repo de Clio) como intermediario para que ningún PAT de GitHub viaje en el binario. Una sola diferencia: **Administrativo no tiene activación de instalación**.
 
 ```
 Administrativo (Tauri)                 Update API (Worker de Clio)            GitHub privado
@@ -25,18 +25,24 @@ downloadAndInstall ─GET─► /updates/administrativo/download/:id?token=…  
 | CI que compila/firma/publica | `.github/workflows/build.yml` |
 | Rutas del Worker | repo Clio: `update-api/src/index.ts`, `logic/github.ts`, `logic/updateManifest.ts` |
 
+## Dos repos: código público, instaladores privados
+
+- `erosbonoladev/administrativo` (**público**): solo el código y el workflow. No contiene secretos.
+- `erosbonoladev/administrativo-releases` (**privado**): solo aloja los Releases (instaladores + `latest.json`). El workflow del repo público compila y publica ahí (`owner`/`repo` de `tauri-action`).
+
+Por qué: el instalador lleva embebido el token de Turso (por diseño, ver CLAUDE.md). Con los Releases privados, solo el Update API (con su PAT) puede entregarlos; el repo público no los expone. **No publicar instaladores en un repo público.**
+
 ## Configuración única (una sola vez)
 
-1. Crear el repo **privado** de Administrativo en GitHub (el Worker espera `GITHUB_OWNER/GITHUB_REPO_ADMINISTRATIVO`; hoy `administrativo` en `update-api/wrangler.toml` — ajustar si el nombre real es otro).
-2. Ampliar el PAT fine-grained del Worker (`GITHUB_TOKEN`, Contents: read-only) para que incluya también ese repo.
-3. Secrets del repo de Administrativo: `VITE_TURSO_URL`, `VITE_TURSO_AUTH_TOKEN` (los de Clio), `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
-4. Desplegar el Worker con las rutas nuevas: `cd update-api && npm run deploy` (en el repo de Clio). Verificar: `curl -i https://clio-update-api.erosbonoladev.workers.dev/updates/administrativo/latest` → 204 mientras no haya release publicado, JSON después.
+1. Repos creados (arriba). `update-api/wrangler.toml` apunta a `GITHUB_REPO_ADMINISTRATIVO = "administrativo-releases"`.
+2. Secrets del repo **público** (`gh secret set <NOMBRE> -R erosbonoladev/administrativo`): `VITE_TURSO_URL`, `VITE_TURSO_AUTH_TOKEN` (los de Clio), `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (los mismos de Clio) y `RELEASES_TOKEN`: PAT fine-grained con acceso **solo** a `administrativo-releases`, permiso Contents: read and write.
+3. Ampliar el PAT del Worker (`GITHUB_TOKEN`, Contents: read-only) para que también incluya `administrativo-releases`.
+4. Desplegar el Worker con las rutas nuevas: `cd update-api && npm run deploy` (en el repo de Clio). Verificar: `curl -i https://clio-update-api.erosbonoladev.workers.dev/updates/administrativo/latest` → 204 mientras no haya release, JSON después.
 
 ## Publicar una versión
 
 1. Subir la versión en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.
-2. `git tag app-v<versión> && git push origin app-v<versión>` (o `gh workflow run build.yml`): compila Windows y macOS, firma y deja un Release en **draft** con instaladores + `latest.json`.
-3. Publicar el release (sacarlo de draft). Desde ese momento las apps instaladas lo ofrecen.
+2. `git tag app-v<versión> && git push origin app-v<versión>` (o `gh workflow run build.yml`): compila Windows y macOS, firma y **publica** el Release (no draft) en `administrativo-releases` con instaladores + `latest.json`. Desde ese momento las apps instaladas lo ofrecen.
 
 La **primera** build con updater hay que instalarla a mano en cada equipo; las siguientes se actualizan solas (chequeo al abrir, o el botón de la barra lateral).
 

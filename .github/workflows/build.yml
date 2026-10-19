@@ -38,12 +38,16 @@ jobs:
       - name: Build app
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT fine-grained (Contents: read/write) solo sobre administrativo-releases:
+          # el GITHUB_TOKEN por defecto solo alcanza este repo (público).
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN }}
           VITE_TURSO_URL: ${{ secrets.VITE_TURSO_URL }}
           VITE_TURSO_AUTH_TOKEN: ${{ secrets.VITE_TURSO_AUTH_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          owner: erosbonoladev
+          repo: administrativo-releases
           tagName: app-v__VERSION__
           releaseName: "Administrativo v__VERSION__"
           releaseBody: "Instaladores para Windows y macOS."
