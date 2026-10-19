@@ -12,7 +12,7 @@ downloadAndInstall ─GET─► /updates/administrativo/download/:id?token=…  
 
 - Sin credencial de instalación: la ruta no pide `Authorization`/`X-Installation-Id`. El binario no contiene secretos y la app exige login igual. La descarga sí va con token HMAC de 10 min (el mismo `DOWNLOAD_TOKEN_SECRET`).
 - Una instalación de Clio revocada **no** afecta a Administrativo (no comparten credencial).
-- La firma del updater (minisign) es la misma clave que Clio: `pubkey` de `tauri.conf.json` es idéntica a la de Clio, y el repo de Administrativo necesita los mismos secrets `TAURI_SIGNING_PRIVATE_KEY`/`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Si se prefiere clave propia: `npm run tauri signer generate`, cambiar `pubkey` y los secrets (las versiones ya instaladas con la clave vieja no podrían actualizarse).
+- La firma del updater (minisign) usa una clave propia de Administrativo (`~/.tauri/administrativo.key`, respaldada fuera del repo; su `.pub` es la `pubkey` de `tauri.conf.json`). Secrets del repo: `TAURI_SIGNING_PRIVATE_KEY`/`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Si se pierde la clave, las apps instaladas ya no podrán actualizarse.
 
 ## Código
 
@@ -35,7 +35,7 @@ Por qué: el instalador lleva embebido el token de Turso (por diseño, ver CLAUD
 ## Configuración única (una sola vez)
 
 1. Repos creados (arriba). `update-api/wrangler.toml` apunta a `GITHUB_REPO_ADMINISTRATIVO = "administrativo-releases"`.
-2. Secrets del repo **público** (`gh secret set <NOMBRE> -R erosbonoladev/administrativo`): `VITE_TURSO_URL`, `VITE_TURSO_AUTH_TOKEN` (los de Clio), `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (los mismos de Clio) y `RELEASES_TOKEN`: PAT fine-grained con acceso **solo** a `administrativo-releases`, permiso Contents: read and write.
+2. Secrets del repo **público** (`gh secret set <NOMBRE> -R erosbonoladev/administrativo`): `VITE_TURSO_URL`, `VITE_TURSO_AUTH_TOKEN` (los de Clio), `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (clave propia de Administrativo) y `RELEASES_TOKEN`: PAT fine-grained con acceso **solo** a `administrativo-releases`, permiso Contents: read and write.
 3. Ampliar el PAT del Worker (`GITHUB_TOKEN`, Contents: read-only) para que también incluya `administrativo-releases`.
 4. Desplegar el Worker con las rutas nuevas: `cd update-api && npm run deploy` (en el repo de Clio). Verificar: `curl -i https://clio-update-api.erosbonoladev.workers.dev/updates/administrativo/latest` → 204 mientras no haya release, JSON después.
 

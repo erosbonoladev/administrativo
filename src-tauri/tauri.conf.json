@@ -40,7 +40,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUzOTkwRTU3NEQ2QTcwODEKUldTQmNHcE5WdzZaNDc5WVM1WW8zM2JzQ0gvQWFFQ1hrMjRVQUh5ZG1yUXVrbzMzUXZ0dzdiakcK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFCNzhBMzg5QTVDN0ZDMzkKUldRNS9NZWxpYU40Ry9LVWFlZkVBYVZvSVBLU1FxWm53Sy9UTmVyQnhHcUVabkZ2VE55TUozU2oK",
       "endpoints": [
         "https://clio-update-api.erosbonoladev.workers.dev/updates/administrativo/latest"
       ]
