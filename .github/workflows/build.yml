@@ -50,7 +50,7 @@ jobs:
           repo: administrativo-releases
           # Sin esto tauri-action manda el SHA de este repo y GitHub rechaza el release
           # (target_commitish inválido): ese commit no existe en administrativo-releases.
-          commitish: main
+          releaseCommitish: main
           tagName: app-v__VERSION__
           releaseName: "Administrativo v__VERSION__"
           releaseBody: "Instaladores para Windows y macOS."
