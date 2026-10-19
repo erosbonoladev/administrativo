@@ -1,0 +1,23 @@
+logs
+*.log
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*
+!.env.example
+!.env.test
+
+# BD SQLite local descartable que usan las pruebas (tests/setup.ts) — nunca es la BD real.
+/.tmp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Salida de compilación de Rust
+/src-tauri/target/
+/src-tauri/gen/schemas/
