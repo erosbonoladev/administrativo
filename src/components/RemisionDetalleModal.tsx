@@ -3,6 +3,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import {
   allowFsPath,
+  computeImporte,
   computeRemisionMontos,
   getPrecio,
   getPreciosBySkuPrincipal,
@@ -231,7 +232,7 @@ export default function RemisionDetalleModal({ remision, onClose, onUpdated }: P
         producto_nombre: r.productoNombre,
         cantidad: r.cantidadNum,
         precio_unitario: r.precioNum,
-        importe: r.cantidadNum * r.precioNum,
+        importe: computeImporte(r.cantidadNum, r.precioNum),
       }));
       const updated = await updateRemisionConRenglones(
         actor,
@@ -503,7 +504,7 @@ export default function RemisionDetalleModal({ remision, onClose, onUpdated }: P
                               style={{ width: "6rem" }}
                             />
                           </td>
-                          <td>{formatMoney(r.cantidadNum * r.precioNum)}</td>
+                          <td>{formatMoney(computeImporte(r.cantidadNum, r.precioNum))}</td>
                           <td>
                             <button
                               type="button"

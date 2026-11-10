@@ -3,6 +3,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import {
   allowFsPath,
+  computeImporte,
   computeRemisionMontos,
   createRemisionConFolio,
   getPrecio,
@@ -274,7 +275,7 @@ export default function RemisionForm({ tipo, onCreated }: Props) {
         producto_nombre: r.productoNombre,
         cantidad: r.cantidadNum,
         precio_unitario: r.precioNum,
-        importe: r.cantidadNum * r.precioNum,
+        importe: computeImporte(r.cantidadNum, r.precioNum),
       }));
       const remisionInput: Omit<
         RemisionInput,

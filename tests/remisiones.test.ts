@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  computeImporte,
   computeRemisionMontos,
   createRemisionConFolio,
   deleteRemision,
@@ -43,6 +44,15 @@ describe("computeRemisionMontos — fórmula única compartida con RemisionForm.
     expect(montos.descuento).toBe(0);
     expect(montos.iva).toBeCloseTo(8);
     expect(montos.total).toBeCloseTo(58);
+  });
+
+  it("trabaja a 3 decimales: importes, subtotal, descuento, IVA y total salen redondeados a milésimas", () => {
+    const montos = computeRemisionMontos([{ cantidad: 2.5, precio_unitario: 1.125 }], 0);
+    expect(montos.subtotal).toBe(2.813); // 2.8125 → 2.813
+    expect(montos.iva).toBe(0.45); // 2.813 × 0.16 = 0.45008
+    expect(montos.total).toBe(3.263);
+    expect(computeImporte(0.1, 0.2)).toBe(0.02); // sin ruido de punto flotante
+    expect(computeImporte(3, 0.125)).toBe(0.375);
   });
 
   it("suma varios renglones antes de aplicar descuento/IVA sobre el subtotal combinado", () => {

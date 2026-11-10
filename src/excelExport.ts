@@ -4,8 +4,8 @@ import type { RemisionHistorialRow } from "./types";
 const moneyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
+  minimumFractionDigits: 3,
+  maximumFractionDigits: 3,
 });
 
 export function formatMoney(n: number): string {

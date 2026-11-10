@@ -626,14 +626,22 @@ export const IVA_RATE = 0.16;
 // conoce la fórmula de negocio: IVA = Subtotal × IVA_RATE; Total = Subtotal
 // − Descuento + IVA (se suma — regla de negocio documentada en
 // docs/WORKFLOWS.md).
+export function redondear3(n: number): number {
+  return Math.round((n + Number.EPSILON) * 1000) / 1000;
+}
+
+export function computeImporte(cantidad: number, precioUnitario: number): number {
+  return redondear3(cantidad * precioUnitario);
+}
+
 export function computeRemisionMontos(
   renglones: { cantidad: number; precio_unitario: number }[],
   descuentoPct: number,
 ): { subtotal: number; descuento: number; iva: number; total: number } {
-  const subtotal = renglones.reduce((sum, r) => sum + r.cantidad * r.precio_unitario, 0);
-  const descuento = subtotal * (descuentoPct / 100);
-  const iva = subtotal * IVA_RATE;
-  const total = subtotal - descuento + iva;
+  const subtotal = redondear3(renglones.reduce((sum, r) => sum + computeImporte(r.cantidad, r.precio_unitario), 0));
+  const descuento = redondear3(subtotal * (descuentoPct / 100));
+  const iva = redondear3(subtotal * IVA_RATE);
+  const total = redondear3(subtotal - descuento + iva);
   return { subtotal, descuento, iva, total };
 }
 
@@ -661,7 +669,7 @@ function computeRemisionTotales(
     if (!Number.isFinite(r.precio_unitario) || r.precio_unitario < 0) {
       throw new Error(`Precio inválido en el renglón de ${r.sku || "producto sin SKU"}.`);
     }
-    return { ...r, importe: r.cantidad * r.precio_unitario };
+    return { ...r, importe: computeImporte(r.cantidad, r.precio_unitario) };
   });
   const { subtotal, descuento, iva, total } = computeRemisionMontos(recomputed, descuentoPct);
   if (total < 0) {

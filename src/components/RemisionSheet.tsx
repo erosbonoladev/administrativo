@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
 import { useAuth } from "../auth";
-import { searchPrecios } from "../db";
+import { computeImporte, searchPrecios } from "../db";
 import { formatMoney } from "../excelExport";
 import * as L from "../remisionLayout";
 import type { Precio, TipoRemision } from "../types";
@@ -321,7 +321,7 @@ export default function RemisionSheet(props: Props) {
       );
     }
 
-    const importe = row.cantidadNum * row.precioNum;
+    const importe = computeImporte(row.cantidadNum, row.precioNum);
     const productoPad = pctX(C.productoTextX - C.producto[0]);
     return (
       <div key={row.key} className="rs-row" style={rowStyle}>
